@@ -1,4 +1,8 @@
 import path from 'path';
+import { Channel } from './entities/Channel';
+import { Message } from './entities/Message';
+import { Team } from './entities/Team';
+import { User } from './entities/User';
 
 export const typeormConfig: any = {
     type: process.env.DB_TYPE,
@@ -9,6 +13,6 @@ export const typeormConfig: any = {
     database: process.env.DB_NAME,
     logging: true,
     synchronize: true,
-    entities: [],
+    entities: [User, Team, Channel, Message],
     migrations: [path.join(__dirname, './migrations/*')],
 }
