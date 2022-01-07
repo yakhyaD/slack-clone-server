@@ -1,10 +1,11 @@
 require("dotenv").config();
 import express from "express";
-import 'reflect-metadata';
-import { ApolloServer, gql } from "apollo-server-express";
-// import { buildSchema } from "type-graphql";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
 import { createConnection } from "typeorm"
 import { typeormConfig } from "./typeorm.config";
+import { UserResolver } from "./resolvers/UserResolver";
+import 'reflect-metadata';
 
 // dotenv.config();
 const port = process.env.PORT || 8000
@@ -14,18 +15,11 @@ const main = async () => {
     await createConnection(typeormConfig);
     const app = express();
 
-    const typeDefs = gql`
-    type Query {
-        hello: String
-    }
-    `;
     const apolloServer = new ApolloServer({
-        typeDefs,
-        resolvers: {
-            Query: {
-                hello: () => 'Hello world!',
-            }
-        },
+        schema: await buildSchema({
+            resolvers: [UserResolver],
+            validate: false,
+        })
     })
 
 
