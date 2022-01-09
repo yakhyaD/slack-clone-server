@@ -22,6 +22,10 @@ export class User extends BaseEntity {
     password!: string;
 
     @Field()
+    @Column({ type: "int", default: 0 })
+    tokenVersion!: number;
+
+    @Field()
     @CreateDateColumn()
     createdAt: Date;
 

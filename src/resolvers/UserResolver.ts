@@ -1,9 +1,12 @@
 import { validateRegister } from './../utils/validateRegister';
 import { AuthCredentials } from './../utils/AuthCredentials';
 import { User } from "../entities/User";
-import { Arg, Field, Mutation, ObjectType, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver, UseMiddleware } from "type-graphql";
 import argon2 from "argon2";
 import { getConnection } from 'typeorm';
+import { createAccessToken, createRefreshToken, sendRefreshToken } from "../utils/handleToken";
+import { MyContext } from '../type';
+import { isAuth } from '../middlewares/isAuth';
 
 @ObjectType()
 class ErrorField {
@@ -20,21 +23,21 @@ class UserResponse {
 
     @Field(() => User, { nullable: true })
     user?: User;
+
+    @Field(() => String, { nullable: true })
+    access_token: string;
 }
 
 
 @Resolver(User)
 export class UserResolver {
 
-    @Query(() => User, { nullable: true })
+    @Query(() => String)
+    @UseMiddleware(isAuth)
     me(
-        @Arg("id") id: number,
+        @Ctx() { payload }: MyContext
     ) {
-        const user = User.findOne(id);
-        if (!user) {
-            return null;
-        }
-        return user;
+        return `I am user ${payload.userId} `;
     }
 
     @Mutation(() => UserResponse)
@@ -89,6 +92,7 @@ export class UserResolver {
     async login(
         @Arg("username") username: string,
         @Arg("password") password: string,
+        @Ctx() { res }: MyContext
     ) {
 
         const user = await User.findOne(
@@ -113,7 +117,14 @@ export class UserResolver {
                 }]
             }
         }
-        return { user };
+
+
+        sendRefreshToken(res, createRefreshToken(user));
+
+        return {
+            user,
+            access_token: createAccessToken(user)
+        };
     }
 
 }
