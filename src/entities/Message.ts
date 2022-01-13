@@ -33,9 +33,8 @@ export class Message extends BaseEntity {
     @ManyToOne(() => Channel, channel => channel.messages)
     channel: Channel;
 
+    @Field(() => User)
     @ManyToOne(() => User, user => user.messages)
     user: User;
-
-
 
 }

@@ -2,7 +2,6 @@ import { Team } from './../entities/Team';
 import { isAuth } from "../middlewares/isAuth";
 import { MyContext } from "../type";
 import { Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver, UseMiddleware } from "type-graphql";
-import { Channel } from '../entities/Channel';
 import { Member } from '../entities/Member';
 import { getConnection } from 'typeorm';
 
@@ -24,8 +23,7 @@ export class TeamResolver {
         @Ctx() { payload }: MyContext
     ) {
         try {
-            const team = await Team.create({ name, ownerId: parseInt(payload.userId) }).save();
-            await Channel.create({ name: "general", teamId: team.id }).save();
+            await Team.create({ name, ownerId: parseInt(payload.userId) }).save();
             return true;
         } catch (error) {
             console.log(error);
@@ -48,5 +46,15 @@ export class TeamResolver {
 
         const teamsOwned = await Team.find({ where: { ownerId: parseInt(payload.userId) } });
         return { teamsInvited, teamsOwned };
+    }
+
+    @Query(() => Team)
+    async getTeam(
+        @Arg("teamId") teamId: number,
+    ) {
+        return await getConnection().getRepository(Team).findOne({
+            relations: ["channels", "users"],
+            where: { id: teamId }
+        });
     }
 }

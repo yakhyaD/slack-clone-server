@@ -12,6 +12,7 @@ import { User } from "./entities/User";
 import { createAccessToken, createRefreshToken, sendRefreshToken } from "./utils/handleToken";
 import { MemberResolver } from "./resolvers/MemberResolver";
 import { TeamResolver } from "./resolvers/TeamResolver";
+import { ChannelResolver } from "./resolvers/ChannelResolver";
 
 // dotenv.config();
 const port = process.env.PORT || 8000
@@ -53,7 +54,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [UserResolver, TeamResolver, MemberResolver],
+            resolvers: [UserResolver, TeamResolver, MemberResolver, ChannelResolver],
             validate: false,
         }),
         context: ({ req, res }) => ({
