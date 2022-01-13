@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { BaseEntity, Column, CreateDateColumn, Entity, UpdateDateColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, UpdateDateColumn, ManyToOne, PrimaryGeneratedColumn, PrimaryColumn, JoinColumn } from "typeorm";
 import { Channel } from "./Channel";
 import { User } from "./User";
 
@@ -15,11 +15,11 @@ export class Message extends BaseEntity {
     text!: string;
 
     @Field()
-    @Column()
+    @PrimaryColumn()
     userId: number;
 
     @Field()
-    @Column()
+    @PrimaryColumn()
     channelId: number;
 
     @Field()
@@ -31,9 +31,11 @@ export class Message extends BaseEntity {
     updatedAt: Date;
 
     @ManyToOne(() => Channel, channel => channel.messages)
+    @JoinColumn({ name: "channelId" })
     channel: Channel;
 
     @Field(() => User)
+    @JoinColumn({ name: "userId" })
     @ManyToOne(() => User, user => user.messages)
     user: User;
 
