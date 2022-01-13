@@ -1,5 +1,6 @@
 import { Field, ObjectType } from "type-graphql";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Member } from "./Member";
 import { Message } from "./Message";
 import { Team } from "./Team";
 
@@ -33,8 +34,11 @@ export class User extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @OneToMany(() => Team, teamsOwned => teamsOwned.owner)
-    teamsOwned: Team[];
+    @OneToMany(() => Member, m => m.team)
+    teams: Team[];
+
+    // @OneToMany(() => Team, teamsOwned => teamsOwned.owner)
+    // teamsOwned: Team[];
 
     @OneToMany(() => Message, messages => messages.user)
     messages: Message[];

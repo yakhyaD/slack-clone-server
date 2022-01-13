@@ -11,7 +11,7 @@ export class Channel extends BaseEntity {
     id!: number;
 
     @Field()
-    @Column({ unique: true })
+    @Column()
     name!: string;
 
     @Field()
@@ -24,11 +24,13 @@ export class Channel extends BaseEntity {
 
     @Field()
     @Column()
-    teamId: number;
+    teamId!: number;
 
     @ManyToOne(() => Team, team => team.channels)
     team: Team;
 
-    @OneToMany(() => Message, messages => messages.channel)
+    @OneToMany(() => Message, messages => messages.channel, {
+        cascade: true
+    })
     messages: Message[];
 }

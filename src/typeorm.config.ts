@@ -1,5 +1,6 @@
 import path from 'path';
 import { Channel } from './entities/Channel';
+import { Member } from './entities/Member';
 import { Message } from './entities/Message';
 import { Team } from './entities/Team';
 import { User } from './entities/User';
@@ -13,6 +14,9 @@ export const typeormConfig: any = {
     database: process.env.DB_NAME,
     logging: true,
     synchronize: true,
-    entities: [User, Team, Channel, Message],
-    migrations: [path.join(__dirname, './migrations/*')],
+    entities: [User, Team, Channel, Message, Member],
+    migrations: [path.join(__dirname, './migrations/*.js|ts')],
+    cli: {
+        "migrationsDir": path.join(__dirname, './migrations')
+    }
 }

@@ -10,6 +10,8 @@ import cookieParser from "cookie-parser";
 import { verify } from "jsonwebtoken";
 import { User } from "./entities/User";
 import { createAccessToken, createRefreshToken, sendRefreshToken } from "./utils/handleToken";
+import { MemberResolver } from "./resolvers/MemberResolver";
+import { TeamResolver } from "./resolvers/TeamResolver";
 
 // dotenv.config();
 const port = process.env.PORT || 8000
@@ -51,11 +53,12 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [UserResolver],
+            resolvers: [UserResolver, TeamResolver, MemberResolver],
             validate: false,
         }),
         context: ({ req, res }) => ({
-            req, res
+            req,
+            res
         })
     })
 
@@ -72,4 +75,4 @@ const main = async () => {
 
     app.listen(port, () => console.log(`server listening on port ${port} `));
 }
-main().catch((err) => console.error(err))
+main().catch((err) => console.error(err));
