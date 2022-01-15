@@ -14,6 +14,7 @@ import { MemberResolver } from "./resolvers/MemberResolver";
 import { TeamResolver } from "./resolvers/TeamResolver";
 import { ChannelResolver } from "./resolvers/ChannelResolver";
 import { MessageResolver } from "./resolvers/MessageResolver";
+import { redis } from "./redis"
 
 // dotenv.config();
 const port = process.env.PORT || 8000
@@ -60,7 +61,8 @@ const main = async () => {
         }),
         context: ({ req, res }) => ({
             req,
-            res
+            res,
+            redis
         })
     })
 

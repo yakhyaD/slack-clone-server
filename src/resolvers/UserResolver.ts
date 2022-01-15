@@ -7,6 +7,10 @@ import { getConnection } from 'typeorm';
 import { createAccessToken, createRefreshToken, sendRefreshToken } from "../utils/handleToken";
 import { MyContext } from '../type';
 import { isAuth } from '../middlewares/isAuth';
+import { FORGOT_PASSWORD } from '../constants';
+import { sendMail } from '../utils/sendMail';
+import { v4 as uuidV4 } from 'uuid';
+import { forgotPasswordEmail } from '../utils/emailMarkup';
 
 @ObjectType()
 class ErrorField {
@@ -25,7 +29,7 @@ class UserResponse {
     user?: User;
 
     @Field(() => String, { nullable: true })
-    access_token: string;
+    access_token?: string;
 }
 
 
@@ -125,6 +129,81 @@ export class UserResolver {
             user,
             access_token: createAccessToken(user)
         };
+    }
+
+    @Mutation(() => Boolean)
+    async forgotPassword(
+        @Arg("email") email: string,
+        @Ctx() { redis }: MyContext,
+    ) {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return false
+        }
+        const token = uuidV4()
+        const key = FORGOT_PASSWORD + token;
+        // token expires in 15 minutes
+        await redis.set(key, `${user.id}`, "ex", 1000 * 60 * 15);
+        await sendMail(email, forgotPasswordEmail(token))
+        return true;
+    }
+
+    @Mutation(() => UserResponse)
+    async resetPassword(
+        @Arg("newPassword") newPassword: string,
+        @Arg("token") token: string,
+        @Ctx() { res, redis }: MyContext
+    ): Promise<UserResponse> {
+        const key = FORGOT_PASSWORD + token
+        const redisValue = await redis.get(key)
+
+        if (!redisValue) {
+            return {
+                errors: [{
+                    field: "token",
+                    message: "Token expired"
+                }]
+            }
+        }
+        if (newPassword.length < 3) {
+            return {
+                errors: [{
+                    field: "password",
+                    message: "Password must be at least 3 characters"
+                }]
+            }
+        }
+        const user = await User.findOne({ id: parseInt(redisValue + "") });
+        if (!user) {
+            return {
+                errors: [{
+                    field: "token",
+                    message: "User not found"
+                }]
+            }
+        }
+        const samePassword = await argon2.verify(user.password, newPassword);
+        if (samePassword) {
+            return {
+                errors: [{
+                    field: "password",
+                    message: "New password must be different from old password"
+                }]
+            }
+        }
+        sendRefreshToken(res, createRefreshToken(user));
+        redis.del(key)
+
+        const hashedPassword = await argon2.hash(newPassword)
+        await User.update(user.id, {
+            password: hashedPassword,
+            tokenVersion: user.tokenVersion + 1
+        })
+
+        return {
+            user,
+            access_token: createAccessToken(user)
+        }
     }
 
 }
