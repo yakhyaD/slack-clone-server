@@ -130,6 +130,10 @@ export class UserResolver {
             access_token: createAccessToken(user)
         };
     }
+    @Mutation(() => Boolean)
+    logout() {
+        return true;
+    }
 
     @Mutation(() => Boolean)
     async forgotPassword(

@@ -15,15 +15,23 @@ import { TeamResolver } from "./resolvers/TeamResolver";
 import { ChannelResolver } from "./resolvers/ChannelResolver";
 import { MessageResolver } from "./resolvers/MessageResolver";
 import { redis } from "./redis"
+import cors from "cors";
 
 // dotenv.config();
 const port = process.env.PORT || 8000
+
 
 const main = async () => {
 
     await createConnection(typeormConfig);
     const app = express();
 
+    app.use(cors({
+        origin: [
+            "http://localhost:4000", "https://studio.apollographql.com"
+        ],
+        credentials: true
+    }))
     app.use(cookieParser());
 
     app.post("/refresh_token", async (req, res) => {
@@ -66,14 +74,13 @@ const main = async () => {
         })
     })
 
-
     await apolloServer.start();
 
     apolloServer.applyMiddleware({
         app,
         cors: {
             credentials: true,
-            origin: "https://studio.apollographql.com"
+            origin: ["https://studio.apollographql.com", "http://localhost:4000"]
         }
     });
 

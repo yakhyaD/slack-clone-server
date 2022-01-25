@@ -5,6 +5,7 @@ import { Message } from './entities/Message';
 import { Team } from './entities/Team';
 import { User } from './entities/User';
 
+
 export const typeormConfig: any = {
     type: process.env.DB_TYPE,
     host: process.env.DB_HOST,

@@ -33,7 +33,7 @@ export class TeamResolver {
 
     @Query(() => TeamResponse)
     @UseMiddleware(isAuth)
-    async getTeams(
+    async teams(
         @Ctx() { payload }: MyContext
     ) {
         /**
@@ -49,7 +49,7 @@ export class TeamResolver {
     }
 
     @Query(() => Team)
-    async getTeam(
+    async team(
         @Arg("teamId") teamId: number,
     ) {
         return await getConnection().getRepository(Team).findOne({
