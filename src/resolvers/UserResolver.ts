@@ -36,12 +36,12 @@ class UserResponse {
 @Resolver(User)
 export class UserResolver {
 
-    @Query(() => String)
+    @Query(() => User, { nullable: true })
     @UseMiddleware(isAuth)
-    me(
+    async me(
         @Ctx() { payload }: MyContext
     ) {
-        return `I am user ${payload.userId} `;
+        return User.findOne({ id: parseInt(payload.userId) });
     }
 
     @Mutation(() => UserResponse)

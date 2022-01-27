@@ -4,6 +4,7 @@ import { MyContext } from "../type";
 import { Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver, UseMiddleware } from "type-graphql";
 import { Member } from '../entities/Member';
 import { getConnection } from 'typeorm';
+import { Channel } from '../entities/Channel';
 
 @ObjectType()
 export class TeamResponse {
@@ -23,7 +24,11 @@ export class TeamResolver {
         @Ctx() { payload }: MyContext
     ) {
         try {
-            await Team.create({ name, ownerId: parseInt(payload.userId) }).save();
+            const team = await Team.create({ name, ownerId: parseInt(payload.userId) }).save();
+            await Channel.create({
+                name: "general",
+                teamId: team.id
+            }).save();
             return true;
         } catch (error) {
             console.log(error);
