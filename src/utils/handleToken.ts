@@ -1,8 +1,9 @@
 import { sign } from 'jsonwebtoken';
 import { User } from '../entities/User';
 import { getConnection } from 'typeorm';
+import { Response } from 'express';
 
-import { COOKIE_MAX_AGE, __prod__ } from '../constants';
+import { __prod__ } from '../constants';
 
 
 export function createAccessToken(user) {
@@ -26,17 +27,17 @@ export function createRefreshToken(user) {
     )
 }
 
-export function sendRefreshToken(res, token) {
+export function sendRefreshToken(res: Response, token: string) {
     res.cookie('jid', token, {
         httpOnly: true,
-        path: '/refresh_token',
+        // path: '/refresh_token',
         secure: __prod__,
-        maxAge: COOKIE_MAX_AGE,
-        sameSite: "none"
+        // maxAge: COOKIE_MAX_AGE,
+        sameSite: __prod__ ? "none" : "lax"
     });
 }
 
 // revoke all token everytime we change or forgot our password
-export function revoeRefreshToken(userId) {
+export async function revoeRefreshToken(userId) {
     return getConnection().getRepository(User).increment({ id: userId }, 'tokenVersion', 1);
 }

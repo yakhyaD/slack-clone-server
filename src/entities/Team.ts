@@ -12,7 +12,7 @@ export class Team extends BaseEntity {
     id!: number;
 
     @Field()
-    @Column({ unique: true })
+    @Column()
     name!: string;
 
     @Field()
@@ -27,6 +27,7 @@ export class Team extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @Field(() => [User], { nullable: true })
     @OneToMany(() => Member, m => m.user)
     users: User[];
 

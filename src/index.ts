@@ -16,6 +16,7 @@ import { ChannelResolver } from "./resolvers/ChannelResolver";
 import { MessageResolver } from "./resolvers/MessageResolver";
 import { redis } from "./redis"
 import cors from "cors";
+import { __prod__ } from "./constants";
 
 // dotenv.config();
 const port = process.env.PORT || 8000
@@ -38,22 +39,24 @@ const main = async () => {
         const cookie = req.cookies.jid;
 
         if (!cookie) {
+            console.log("No cookie")
             return res.send({ ok: false, accessToken: "" });
         }
         let payload;
         try {
             payload = verify(cookie.token, process.env.REFRESH_TOKEN_SECRET!);
-
         } catch (err) {
             console.log(err);
             res.send({ ok: false, accessToken: "" });
         }
         const user = await User.findOne({ id: payload.userId });
         if (!user) {
+            console.log("user not found");
             return res.send({ ok: false, accessToken: "" });
         }
 
         if (user.tokenVersion !== payload.tokenVersion) {
+            console.log("token version mismatch")
             return res.send({ ok: false, accessToken: "" });
         }
 

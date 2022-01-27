@@ -8,10 +8,10 @@ import { getConnection } from 'typeorm';
 @ObjectType()
 export class TeamResponse {
     @Field(() => [Team], { nullable: true })
-    teamsOwned: Team[];
+    teamsOwned?: Team[];
 
     @Field(() => [Member], { nullable: true })
-    teamsInvited: Member[];
+    teamsInvited?: Member[];
 }
 
 @Resolver()
@@ -40,11 +40,14 @@ export class TeamResolver {
          * @teamInvited: team user is member of
          */
         const teamsInvited = await getConnection().getRepository(Member).find({
-            relations: ["team"],
+            relations: ["team", "team.channels"],
             where: { userId: parseInt(payload.userId) }
         });
 
-        const teamsOwned = await Team.find({ where: { ownerId: parseInt(payload.userId) } });
+        const teamsOwned = await Team.find({
+            where: { ownerId: parseInt(payload.userId) },
+            relations: ["channels"]
+        });
         return { teamsInvited, teamsOwned };
     }
 
