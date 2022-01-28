@@ -28,10 +28,19 @@ export class ChannelResolver {
         if (!team) {
             return { error: "Not the team owner" }
         }
-        const channel = await Channel.create({ name, teamId }).save();
-        team.channels = team.channels ? [...team.channels, channel] : [channel];
-        await team.save();
-        return { ok: true };
+        const channel = await Channel.create({ name, teamId });
+        console.log(team.channels)
+        if (team.channels && !team.channels.includes(channel)) {
+            team.channels = team.channels ? [...team.channels, channel] : [channel];
+            await team.save();
+            await channel.save();
+            return { ok: true };
+        } else {
+            return {
+                ok: false,
+                error: "Channel already exists"
+            }
+        }
 
     }
     @Query(() => Channel)
