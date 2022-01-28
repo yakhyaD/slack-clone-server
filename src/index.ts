@@ -36,27 +36,24 @@ const main = async () => {
     app.use(cookieParser());
 
     app.post("/refresh_token", async (req, res) => {
-        const cookie = req.cookies.jid;
+        const refresh_token = req.cookies.jid;
 
-        if (!cookie) {
-            console.log("No cookie")
+        if (!refresh_token) {
             return res.send({ ok: false, accessToken: "" });
         }
         let payload;
         try {
-            payload = verify(cookie.token, process.env.REFRESH_TOKEN_SECRET!);
+            payload = verify(refresh_token, process.env.REFRESH_TOKEN_SECRET!);
         } catch (err) {
             console.log(err);
             res.send({ ok: false, accessToken: "" });
         }
         const user = await User.findOne({ id: payload.userId });
         if (!user) {
-            console.log("user not found");
             return res.send({ ok: false, accessToken: "" });
         }
 
         if (user.tokenVersion !== payload.tokenVersion) {
-            console.log("token version mismatch")
             return res.send({ ok: false, accessToken: "" });
         }
 
