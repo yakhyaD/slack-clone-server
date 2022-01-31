@@ -44,12 +44,25 @@ export class ChannelResolver {
 
     }
     @Query(() => Channel)
-    async getChannel(
+    async channel(
+        @Arg("teamId") teamId: number,
         @Arg("channelId") channelId: number,
+
     ) {
         return await getConnection().getRepository(Channel).findOne({
             relations: ["messages", "messages.user"],
-            where: { id: channelId }
+            where: {
+                id: channelId,
+                teamId: teamId,
+            },
+            order: {
+                createdAt: "ASC"
+            }
+            // order: {
+            //     messages: {
+            //         createdAt: "DESC"
+            //     }
+            // }
         });
     }
 

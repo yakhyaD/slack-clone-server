@@ -31,7 +31,8 @@ export class Channel extends BaseEntity {
 
     @Field(() => [Message], { nullable: true })
     @OneToMany(() => Message, messages => messages.channel, {
-        cascade: true
+        cascade: true,
+        onDelete: "CASCADE"
     })
     messages: Message[];
 }

@@ -10,7 +10,7 @@ export class MessageResolver {
 
     @Mutation(() => Boolean)
     @UseMiddleware(isAuth)
-    async createMessage(
+    async sendMessage(
         @Arg("text") text: string,
         @Arg("channelId") channelId: number,
         @Ctx() { payload }: MyContext
@@ -23,7 +23,7 @@ export class MessageResolver {
         await Message.create({
             text,
             channelId,
-            userId: user!.id
+            user
         }).save();
         return true;
     }

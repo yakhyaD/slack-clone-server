@@ -7,6 +7,7 @@ import { User } from "./User";
 @Entity()
 export class Message extends BaseEntity {
 
+    @Field()
     @PrimaryGeneratedColumn()
     id!: number;
 
@@ -14,11 +15,9 @@ export class Message extends BaseEntity {
     @Column({ type: "text" })
     text!: string;
 
-    @Field()
     @PrimaryColumn()
     userId: number;
 
-    @Field()
     @PrimaryColumn()
     channelId: number;
 
@@ -34,7 +33,7 @@ export class Message extends BaseEntity {
     @JoinColumn({ name: "channelId" })
     channel: Channel;
 
-    @Field(() => User)
+    @Field(() => User, { nullable: true })
     @JoinColumn({ name: "userId" })
     @ManyToOne(() => User, user => user.messages)
     user: User;

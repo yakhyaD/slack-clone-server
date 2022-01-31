@@ -22,7 +22,7 @@ export class MemberResolver {
     @Mutation(() => AddMemberResponse)
     @UseMiddleware(isAuth)
     async addMember(
-        @Arg("email") email: string,
+        @Arg("username") username: string,
         @Arg("teamId") teamId: number,
         @Ctx() { payload }: MyContext
     ) {
@@ -33,7 +33,9 @@ export class MemberResolver {
                 error: "You are not the owner of this team"
             };
         }
-        const user = await User.findOne({ email })
+        const user = await User.findOne(
+            username.includes('@') ? { "email": username } : { "username": username }
+        );
         if (!user) {
             return {
                 ok: false,
