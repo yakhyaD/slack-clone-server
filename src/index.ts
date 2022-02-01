@@ -8,6 +8,11 @@ import { UserResolver } from "./resolvers/UserResolver";
 import 'reflect-metadata';
 import cookieParser from "cookie-parser";
 import { verify } from "jsonwebtoken";
+import { createServer } from 'http';
+import { execute, subscribe } from 'graphql';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import cors from "cors";
+
 import { User } from "./entities/User";
 import { createAccessToken, createRefreshToken, sendRefreshToken } from "./utils/handleToken";
 import { MemberResolver } from "./resolvers/MemberResolver";
@@ -15,21 +20,24 @@ import { TeamResolver } from "./resolvers/TeamResolver";
 import { ChannelResolver } from "./resolvers/ChannelResolver";
 import { MessageResolver } from "./resolvers/MessageResolver";
 import { redis } from "./redis"
-import cors from "cors";
 import { __prod__ } from "./constants";
+import { pubSub } from "./pubsub";
 
-// dotenv.config();
 const port = process.env.PORT || 8000
 
 
 const main = async () => {
 
     await createConnection(typeormConfig);
+
     const app = express();
+
+    const httpServer = createServer(app);
 
     app.use(cors({
         origin: [
-            "http://localhost:4000", "https://studio.apollographql.com"
+            "https://studio.apollographql.com",
+            process.env.PUBLIC_FRONT_URL as string,
         ],
         credentials: true
     }))
@@ -62,28 +70,51 @@ const main = async () => {
 
     })
 
+    const subscriptionServer = SubscriptionServer.create({
+        schema: await buildSchema({
+            resolvers: [UserResolver, TeamResolver, MemberResolver, ChannelResolver, MessageResolver],
+            pubSub
+        }),
+        execute,
+        subscribe,
+    },
+        {
+            server: httpServer,
+            path: "/graphql"
+        }
+    );
+
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [UserResolver, TeamResolver, MemberResolver, ChannelResolver, MessageResolver],
             validate: false,
+            pubSub
         }),
         context: ({ req, res }) => ({
             req,
             res,
             redis
-        })
+        }),
+        plugins: [
+            {
+                async serverWillStart() {
+                    return {
+                        async drainServer() {
+                            subscriptionServer.close();
+                        }
+                    };
+                }
+            }
+        ]
     })
 
     await apolloServer.start();
 
     apolloServer.applyMiddleware({
         app,
-        cors: {
-            credentials: true,
-            origin: ["https://studio.apollographql.com", "http://localhost:4000"]
-        }
+        cors: false
     });
 
-    app.listen(port, () => console.log(`server listening on port ${port} `));
+    httpServer.listen(port, () => console.log(`server listening on port ${port} `));
 }
 main().catch((err) => console.error(err));

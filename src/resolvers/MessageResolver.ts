@@ -3,10 +3,22 @@ import { Message } from "../entities/Message";
 import { User } from "../entities/User";
 import { isAuth } from "../middlewares/isAuth";
 import { MyContext } from "../type";
-import { Arg, Ctx, Mutation, Resolver, UseMiddleware } from "type-graphql";
+import { Arg, Ctx, Mutation, Resolver, Root, Subscription, UseMiddleware } from "type-graphql";
+import { pubSub } from "../pubsub";
 
 @Resolver()
 export class MessageResolver {
+
+    @Subscription(() => Message, {
+        topics: "ADD_MESSAGE",
+        filter: ({ payload, args }) => args.channelId === payload.channelId
+    })
+    async messageAdded(
+        @Root() payload: Message,
+        @Arg("channelId") channelId: number
+    ) {
+        return Message.findOne({ id: payload.id, channelId });
+    }
 
     @Mutation(() => Boolean)
     @UseMiddleware(isAuth)
@@ -20,11 +32,12 @@ export class MessageResolver {
         if (!channel) {
             return false;
         }
-        await Message.create({
+        const message = await Message.create({
             text,
             channelId,
             user
         }).save();
+        pubSub.publish("ADD_MESSAGE", message);
         return true;
     }
 

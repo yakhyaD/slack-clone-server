@@ -18,6 +18,7 @@ export class Message extends BaseEntity {
     @PrimaryColumn()
     userId: number;
 
+    @Field(() => User)
     @PrimaryColumn()
     channelId: number;
 
