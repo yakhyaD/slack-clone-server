@@ -5,7 +5,8 @@ import { Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver, UseMiddleware }
 import { Member } from '../entities/Member';
 import { getConnection } from 'typeorm';
 import { Channel } from '../entities/Channel';
-// import { User } from '../entities/User';
+// import { User } from 'src/entities/User';
+import { User } from '../entities/User';
 
 @ObjectType()
 export class TeamResponse {
@@ -30,8 +31,8 @@ export class SingleTeam {
     @Field()
     createdAt: Date;
 
-    @Field(() => [Member], { nullable: true })
-    users: Member[]
+    @Field(() => [User], { nullable: true })
+    users: User[]
 
     @Field(() => [Channel], { nullable: true })
     channels: Channel[]
@@ -64,33 +65,11 @@ export class TeamResolver {
     async teams(
         @Ctx() { payload }: MyContext
     ) {
-        // const user = await User.findOne({ id: parseInt(payload.userId) })
-        /**
-         * @teamInvited: team user is member of
-        */
-        // const teamsInvited = [] as Team[];
-
         const res = await getConnection().getRepository(Member).find({
             relations: ["team", "team.channels", "team.users"],
             where: { userId: parseInt(payload.userId) }
         });
-        // console.log(res)
-        // console.log([...res.map(r => r.team)])
         return [...res.map(r => r.team)];
-        // if (res.length > 0) {
-        //     console.log(res)
-        //     res.forEach(item => {
-        //         teamsInvited.push(item.team)
-        //     })
-        // }
-
-
-        // const teamsOwned = await Team.find({
-        //     where: { users: user },
-        //     relations: ["channels"]
-        // });
-        // console.log(teamsOwned)
-        // return teamsOwned;
     }
 
     @Query(() => SingleTeam)
@@ -106,6 +85,20 @@ export class TeamResolver {
         }
         console.log(team)
         return team;
+    }
+
+
+    @Query(() => [User])
+    @UseMiddleware(isAuth)
+    async members(
+        @Arg("teamId") teamId: number,
+        @Ctx() { payload }: MyContext
+    ) {
+        const members = await getConnection().getRepository(Member).find({
+            relations: ["user"],
+            where: { teamId }
+        });
+        return [...members.map(m => m.user).filter(user => user.id !== parseInt(payload.userId))];
     }
 
 }
