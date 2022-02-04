@@ -54,15 +54,7 @@ export class ChannelResolver {
             where: {
                 id: channelId,
                 teamId: teamId,
-            },
-            order: {
-                createdAt: "ASC"
             }
-            // order: {
-            //     messages: {
-            //         createdAt: "DESC"
-            //     }
-            // }
         });
     }
 

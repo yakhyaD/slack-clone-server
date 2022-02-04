@@ -74,8 +74,8 @@ export class TeamResolver {
             relations: ["team", "team.channels", "team.users"],
             where: { userId: parseInt(payload.userId) }
         });
-        console.log(res)
-        console.log([...res.map(r => r.team)])
+        // console.log(res)
+        // console.log([...res.map(r => r.team)])
         return [...res.map(r => r.team)];
         // if (res.length > 0) {
         //     console.log(res)

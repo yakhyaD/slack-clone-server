@@ -1,6 +1,5 @@
 import { Channel } from "../entities/Channel";
 import { Message } from "../entities/Message";
-import { User } from "../entities/User";
 import { isAuth } from "../middlewares/isAuth";
 import { MyContext } from "../type";
 import { Arg, Ctx, Mutation, Resolver, Root, Subscription, UseMiddleware } from "type-graphql";
@@ -17,7 +16,7 @@ export class MessageResolver {
         @Root() payload: Message,
         @Arg("channelId") channelId: number
     ) {
-        return Message.findOne({ id: payload.id, channelId });
+        return Message.findOne({ where: { channelId, id: payload.id }, relations: ["user"] });
     }
 
     @Mutation(() => Boolean)
@@ -28,14 +27,14 @@ export class MessageResolver {
         @Ctx() { payload }: MyContext
     ) {
         const channel = await Channel.findOne(channelId);
-        const user = await User.findOne({ id: parseInt(payload.userId) })
+        // const user = await User.findOne({ id: parseInt(payload.userId) })
         if (!channel) {
             return false;
         }
         const message = await Message.create({
             text,
             channelId,
-            user
+            userId: parseInt(payload.userId)
         }).save();
         pubSub.publish("ADD_MESSAGE", message);
         return true;

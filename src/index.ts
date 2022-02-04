@@ -70,19 +70,6 @@ const main = async () => {
 
     })
 
-    const subscriptionServer = SubscriptionServer.create({
-        schema: await buildSchema({
-            resolvers: [UserResolver, TeamResolver, MemberResolver, ChannelResolver, MessageResolver],
-            pubSub
-        }),
-        execute,
-        subscribe,
-    },
-        {
-            server: httpServer,
-            path: "/graphql"
-        }
-    );
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
@@ -94,18 +81,7 @@ const main = async () => {
             req,
             res,
             redis
-        }),
-        plugins: [
-            {
-                async serverWillStart() {
-                    return {
-                        async drainServer() {
-                            subscriptionServer.close();
-                        }
-                    };
-                }
-            }
-        ]
+        })
     })
 
     await apolloServer.start();
@@ -115,6 +91,22 @@ const main = async () => {
         cors: false
     });
 
-    httpServer.listen(port, () => console.log(`server listening on port ${port} `));
+
+    httpServer.listen(port, async () => {
+        SubscriptionServer.create({
+            schema: await buildSchema({
+                resolvers: [UserResolver, TeamResolver, MemberResolver, ChannelResolver, MessageResolver],
+                pubSub
+            }),
+            execute,
+            subscribe
+        },
+            {
+                server: httpServer,
+                path: apolloServer.graphqlPath
+            }
+        );
+        console.log(`server listening on port ${port} `)
+    });
 }
 main().catch((err) => console.error(err));

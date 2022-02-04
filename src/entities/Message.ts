@@ -35,8 +35,8 @@ export class Message extends BaseEntity {
     channel: Channel;
 
     @Field(() => User, { nullable: true })
+    @ManyToOne(() => User, user => user.messages, { primary: true })
     @JoinColumn({ name: "userId" })
-    @ManyToOne(() => User, user => user.messages)
     user: User;
 
 }
